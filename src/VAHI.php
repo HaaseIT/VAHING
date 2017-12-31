@@ -125,7 +125,7 @@ class VAHI
             natsort($files);
         }
         if (!empty($images) && is_array($images)) {
-            is_anatsort($images);
+            natsort($images);
         }
 
         return ['directories' => $directories, 'files' => $files, 'images' => $images];
