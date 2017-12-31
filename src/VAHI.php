@@ -95,35 +95,27 @@ class VAHI
             die('404'); // todo
         }
 
-        if ($handle = opendir($currentPath)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($requesturi == '/' && $entry == '..') {
-                    continue;
-                }
+        $entries = $this->getCurrentDirectoryEntries($currentPath);
+        $entries = $this->cleanupDirectoryEntries($entries, $requesturi);
+        $entries = $this->sortDirectoryEntries($entries, $currentPath);
 
-                if ($entry == '.') {
-                    continue;
-                }
+        return $entries;
+    }
 
-                if ($entry != '..' && substr($entry, 0, 1) == '.') {
-                    continue;
-                }
-
-                if (is_dir($currentPath.DIRECTORY_SEPARATOR.$entry)) {
-                    $directories[] = $entry;
-                }
-
-                if (is_file($currentPath.DIRECTORY_SEPARATOR.$entry)) {
-                    if (getimagesize($currentPath.DIRECTORY_SEPARATOR.$entry)) {
-                        $images[] = $entry;
-                    } else {
-                        $files[] = $entry;
-                    }
-                }
-
+    protected function sortDirectoryEntries($nodes, $currentPath)
+    {
+        foreach ($nodes as $node) {
+            if (is_dir($currentPath.DIRECTORY_SEPARATOR.$node)) {
+                $directories[] = $node;
             }
 
-            closedir($handle);
+            if (is_file($currentPath.DIRECTORY_SEPARATOR.$node)) {
+                if (getimagesize($currentPath.DIRECTORY_SEPARATOR.$node)) {
+                    $images[] = $node;
+                } else {
+                    $files[] = $node;
+                }
+            }
         }
 
         natsort($directories);
@@ -131,5 +123,41 @@ class VAHI
         natsort($images);
 
         return ['directories' => $directories, 'files' => $files, 'images' => $images];
+    }
+
+    protected function cleanupDirectoryEntries($nodes, $requesturi)
+    {
+        $cleanNodes = [];
+        foreach ($nodes as $node) {
+            if ($requesturi == '/' && $node == '..') {
+                continue;
+            }
+
+            if ($node != '..' && substr($node, 0, 1) == '.') {
+                continue;
+            }
+
+            $cleanNodes[] = $node;
+        }
+
+        return $cleanNodes;
+    }
+
+    protected function getCurrentDirectoryEntries($currentPath)
+    {
+        $nodes = [];
+        if ($handle = opendir($currentPath)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry == '.') {
+                    continue;
+                }
+
+                $nodes[] = $entry;
+            }
+
+            closedir($handle);
+        }
+
+        return $nodes;
     }
 }
