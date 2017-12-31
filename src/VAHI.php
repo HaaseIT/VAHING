@@ -12,11 +12,17 @@ class VAHI
      */
     protected $serviceManager;
 
+    /**
+     * @var HelperConfig
+     */
+    protected $config;
+
     public function __construct($publicdir)
     {
         define('PATH_PUBLIC', $publicdir);
         define('PATH_BASE', dirname(PATH_PUBLIC));
         define('PATH_SRC', PATH_BASE.DIRECTORY_SEPARATOR.'src');
+        define('PATH_CONFIG', PATH_BASE.DIRECTORY_SEPARATOR.'config');
         define('PATH_VIEWS', PATH_SRC.DIRECTORY_SEPARATOR.'views');
         define('PATH_CACHE', PATH_BASE.DIRECTORY_SEPARATOR.'cache');
         define('PATH_CACHE_TEMPLATES', PATH_CACHE.DIRECTORY_SEPARATOR.'templates');
@@ -26,9 +32,12 @@ class VAHI
     {
         $this->serviceManager = new ServiceManager();
 
+        $this->setupRequest();
+
         $this->serviceManager->setFactory('config', function () {
             return new HelperConfig();
         });
+        $this->config = $this->serviceManager->get('config');
 
         $this->setupTwig();
     }
@@ -49,5 +58,78 @@ class VAHI
 
             return $twig;
         });
+    }
+
+    protected function setupRequest()
+    {
+        // PSR-7 Stuff
+        // Init request object
+        $this->serviceManager->setFactory('request', function () {
+            $request = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
+
+            // cleanup request
+            $requesturi = urldecode($request->getRequestTarget());
+            $parsedrequesturi = substr($requesturi, strlen(dirname(filter_input(INPUT_SERVER, 'PHP_SELF'))));
+            if (substr($parsedrequesturi, 1, 1) !== '/') {
+                $parsedrequesturi = '/'.$parsedrequesturi;
+            }
+            return $request->withRequestTarget($parsedrequesturi);
+        });
+    }
+
+    /**
+     * @return ServiceManager
+     */
+    public function getServiceManager()
+    {
+        return $this->serviceManager;
+    }
+
+    public function gatherPageData()
+    {
+        $requesturi = $this->serviceManager->get('request')->getRequestTarget();
+
+        $currentPath = realpath(PATH_PUBLIC.$requesturi);
+
+        if (substr($currentPath, 0, strlen(PATH_PUBLIC)) != PATH_PUBLIC) {
+            die('404'); // todo
+        }
+
+        if ($handle = opendir($currentPath)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($requesturi == '/' && $entry == '..') {
+                    continue;
+                }
+
+                if ($entry == '.') {
+                    continue;
+                }
+
+                if ($entry != '..' && substr($entry, 0, 1) == '.') {
+                    continue;
+                }
+
+                if (is_dir($currentPath.DIRECTORY_SEPARATOR.$entry)) {
+                    $directories[] = $entry;
+                }
+
+                if (is_file($currentPath.DIRECTORY_SEPARATOR.$entry)) {
+                    if (getimagesize($currentPath.DIRECTORY_SEPARATOR.$entry)) {
+                        $images[] = $entry;
+                    } else {
+                        $files[] = $entry;
+                    }
+                }
+
+            }
+
+            closedir($handle);
+        }
+
+        natsort($directories);
+        natsort($files);
+        natsort($images);
+
+        return ['directories' => $directories, 'files' => $files, 'images' => $images];
     }
 }

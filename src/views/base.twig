@@ -10,8 +10,11 @@
     <link rel="stylesheet" href="/global.css?20170812">
 </head>
 <body>
-
-
-
+{% for directory in directories %}
+D: <a href="{{ directory }}">{{ directory }}</a><br>
+{% endfor %}
+{% for file in files %}
+F: <a href="{{ file }}">{{ file }}</a><br>
+{% endfor %}
 </body>
 </html>

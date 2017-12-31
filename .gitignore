@@ -1,3 +1,6 @@
 vendor
 logs
 .idea
+public
+!public/app.php
+!public/.htaccess
