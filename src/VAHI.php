@@ -118,9 +118,15 @@ class VAHI
             }
         }
 
-        natsort($directories);
-        natsort($files);
-        natsort($images);
+        if (!empty($directories) && is_array($directories)) {
+            natsort($directories);
+        }
+        if (!empty($files) && is_array($files)) {
+            natsort($files);
+        }
+        if (!empty($images) && is_array($images)) {
+            is_anatsort($images);
+        }
 
         return ['directories' => $directories, 'files' => $files, 'images' => $images];
     }
