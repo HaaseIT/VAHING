@@ -19,7 +19,7 @@ class HelperConfig
 
     private function loadCore()
     {
-        $core = Yaml::parse(file_get_contents(PATH_CONFIG.'core.yml'));
+        $core = Yaml::parse(file_get_contents(PATH_CONFIG.DIRECTORY_SEPARATOR.'core.yml'));
 
         $this->core = $core;
     }

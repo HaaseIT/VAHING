@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="/global.css?20170812">
 </head>
 <body>
+{% for image in images %}
+<img src="{{ image }}" width="10%">
+{% endfor %}
 {% for directory in directories %}
 D: <a href="{{ directory }}">{{ directory }}</a><br>
 {% endfor %}

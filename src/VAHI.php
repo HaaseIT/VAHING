@@ -73,7 +73,7 @@ class VAHI
             if (substr($parsedrequesturi, 1, 1) !== '/') {
                 $parsedrequesturi = '/'.$parsedrequesturi;
             }
-            return $request->withRequestTarget($parsedrequesturi);
+            return $request->withRequestTarget(urlencode($parsedrequesturi));
         });
     }
 
@@ -87,7 +87,7 @@ class VAHI
 
     public function gatherPageData()
     {
-        $requesturi = $this->serviceManager->get('request')->getRequestTarget();
+        $requesturi = urldecode($this->serviceManager->get('request')->getRequestTarget());
 
         $currentPath = realpath(PATH_PUBLIC.$requesturi);
 
