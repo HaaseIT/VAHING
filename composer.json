@@ -1,0 +1,22 @@
+{
+    "require": {
+        "bower-asset/bootstrap": "4.0.0-beta.3",
+        "fxp/composer-asset-plugin": "^1.4",
+        "zendframework/zend-servicemanager": "^3.1.1",
+        "symfony/yaml": "^3.1.1",
+        "twig/twig": "^2.0"
+    },
+    "config": {
+        "fxp-asset": {
+             "installer-paths": {
+                "npm-asset-library": "public/.assets/vendor",
+                "bower-asset-library": "public/.assets/vendor"
+            }
+        }
+    },
+  "autoload": {
+    "psr-4": {
+      "HaaseIT\\VAHI\\" : "src/"
+    }
+  }
+}
