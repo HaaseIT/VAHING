@@ -154,11 +154,9 @@ class VAHI
         $nodes = [];
         if ($handle = opendir($currentPath)) {
             while (false !== ($entry = readdir($handle))) {
-                if ($entry == '.') {
-                    continue;
+                if ($entry != '.') {
+                    $nodes[] = $entry;
                 }
-
-                $nodes[] = $entry;
             }
 
             closedir($handle);
