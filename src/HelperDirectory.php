@@ -41,25 +41,30 @@ class HelperDirectory
     {
         natsort($nodes);
 
+        $return = [];
         foreach ($nodes as $node) {
-            if (is_dir($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
-                $directories[] = $node;
-            }
+            $return[$this->getNodeType($node)][] = $node;
+        }
 
-            if (is_file($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
-                if (getimagesize($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
-                    $images[] = $node;
-                } else {
-                    $files[] = $node;
-                }
+        return $return;
+    }
+
+    protected function getNodeType(string $node): string
+    {
+        $return = 'undefined';
+        if (is_dir($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
+            $return = 'directories';
+        }
+
+        if (is_file($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
+            if (getimagesize($this->currentPath.DIRECTORY_SEPARATOR.$node)) {
+                $return = 'images';
+            } else {
+                $return = 'files';
             }
         }
 
-        return [
-            'directories' => $directories,
-            'files' => $files,
-            'images' => $images
-        ];
+        return $return;
     }
 
     protected function cleanupDirectoryEntries(array $nodes): array
