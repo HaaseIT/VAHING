@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace HaaseIT\VAHI;
 
@@ -24,16 +24,8 @@ class HelperConfig
         $this->core = $core;
     }
 
-    /**
-     * @param string|false $setting
-     * @return mixed
-     */
-    public function getCore($setting = false)
+    public function getCore(string $setting): ?string
     {
-        if (!$setting) {
-            return $this->core;
-        }
-
-        return !empty($this->core[$setting]) ? $this->core[$setting] : false;
+        return !empty($this->core[$setting]) ? $this->core[$setting] : null;
     }
 }

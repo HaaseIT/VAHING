@@ -1,6 +1,6 @@
 {
     "require": {
-        "php": "^7.0",
+        "php": "^7.1",
         "ext-gd": "*",
         "bower-asset/bootstrap": "4.0.0-beta.3",
         "fxp/composer-asset-plugin": "^1.4",
