@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace HaaseIT\VAHI;
 
@@ -17,7 +17,15 @@ class VAHI
      */
     protected $config;
 
-    public function __construct($publicdir)
+    /**
+     * @var string
+     */
+    protected $requestUri;
+
+    /** @var HelperDirectory */
+    protected $helperDirectory;
+
+    public function __construct(string $publicdir)
     {
         define('PATH_PUBLIC', $publicdir);
         define('PATH_BASE', dirname(PATH_PUBLIC));
@@ -40,11 +48,20 @@ class VAHI
         $this->config = $this->serviceManager->get('config');
 
         $this->setupTwig();
+
+        $this->requestUri = urldecode($this->serviceManager->get('request')->getRequestTarget());
+
+        $this->helperDirectory = new HelperDirectory($this->requestUri);
+        try {
+            $this->helperDirectory->init();
+        } catch (\Exception $e) {
+            die($e->getMessage()); // todo
+        }
     }
 
     protected function setupTwig()
     {
-        $this->serviceManager->setFactory('twig', function (ServiceManager $serviceManager) {
+        $this->serviceManager->setFactory('twig', function (): \Twig_Environment {
             $loader = new \Twig_Loader_Filesystem([PATH_VIEWS]);
 
             $twig_options = [
@@ -77,91 +94,13 @@ class VAHI
         });
     }
 
-    /**
-     * @return ServiceManager
-     */
-    public function getServiceManager()
+    public function getServiceManager(): ServiceManager
     {
         return $this->serviceManager;
     }
 
-    public function gatherPageData()
+    public function gatherPageData(): array
     {
-        $requesturi = urldecode($this->serviceManager->get('request')->getRequestTarget());
-
-        $currentPath = realpath(PATH_PUBLIC.$requesturi);
-
-        if (substr($currentPath, 0, strlen(PATH_PUBLIC)) != PATH_PUBLIC) {
-            die('404'); // todo
-        }
-
-        $entries = $this->getCurrentDirectoryEntries($currentPath);
-        $entries = $this->cleanupDirectoryEntries($entries, $requesturi);
-        $entries = $this->sortDirectoryEntries($entries, $currentPath);
-
-        return $entries;
-    }
-
-    protected function sortDirectoryEntries($nodes, $currentPath)
-    {
-        foreach ($nodes as $node) {
-            if (is_dir($currentPath.DIRECTORY_SEPARATOR.$node)) {
-                $directories[] = $node;
-            }
-
-            if (is_file($currentPath.DIRECTORY_SEPARATOR.$node)) {
-                if (getimagesize($currentPath.DIRECTORY_SEPARATOR.$node)) {
-                    $images[] = $node;
-                } else {
-                    $files[] = $node;
-                }
-            }
-        }
-
-        if (!empty($directories) && is_array($directories)) {
-            natsort($directories);
-        }
-        if (!empty($files) && is_array($files)) {
-            natsort($files);
-        }
-        if (!empty($images) && is_array($images)) {
-            natsort($images);
-        }
-
-        return ['directories' => $directories, 'files' => $files, 'images' => $images];
-    }
-
-    protected function cleanupDirectoryEntries($nodes, $requesturi)
-    {
-        $cleanNodes = [];
-        foreach ($nodes as $node) {
-            if ($requesturi == '/' && $node == '..') {
-                continue;
-            }
-
-            if ($node != '..' && substr($node, 0, 1) == '.') {
-                continue;
-            }
-
-            $cleanNodes[] = $node;
-        }
-
-        return $cleanNodes;
-    }
-
-    protected function getCurrentDirectoryEntries($currentPath)
-    {
-        $nodes = [];
-        if ($handle = opendir($currentPath)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry != '.') {
-                    $nodes[] = $entry;
-                }
-            }
-
-            closedir($handle);
-        }
-
-        return $nodes;
+        return $this->helperDirectory->getCurrentDirectory();
     }
 }
